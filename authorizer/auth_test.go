@@ -136,7 +136,7 @@ func TestAuthorizationService_ReadAuthorization(t *testing.T) {
 			s := authorizer.NewAuthorizationService(m)
 
 			ctx := context.Background()
-			ctx = influxdbcontext.SetAuthorizer(ctx, &Authorizer{[]influxdb.Permission{tt.args.permission}})
+			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
 
 			t.Run("find authorization by id", func(t *testing.T) {
 				_, err := s.FindAuthorizationByID(ctx, 10)
@@ -250,7 +250,7 @@ func TestAuthorizationService_WriteAuthorization(t *testing.T) {
 			s := authorizer.NewAuthorizationService(m)
 
 			ctx := context.Background()
-			ctx = influxdbcontext.SetAuthorizer(ctx, &Authorizer{[]influxdb.Permission{tt.args.permission}})
+			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
 
 			t.Run("create authorization", func(t *testing.T) {
 				err := s.CreateAuthorization(ctx, &influxdb.Authorization{UserID: tt.args.userID})

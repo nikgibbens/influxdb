@@ -1,4 +1,4 @@
-package authorizer_test
+package tenant_test
 
 import (
 	"bytes"
@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/influxdata/influxdb"
-	"github.com/influxdata/influxdb/authorizer"
 	influxdbcontext "github.com/influxdata/influxdb/context"
 	"github.com/influxdata/influxdb/mock"
+	"github.com/influxdata/influxdb/tenant"
 	influxdbtesting "github.com/influxdata/influxdb/testing"
 )
 
@@ -102,10 +102,11 @@ func TestOrgService_FindOrganizationByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
+
 			_, err := s.FindOrganizationByID(ctx, tt.args.id)
 			influxdbtesting.ErrorsEqual(t, err, tt.wants.err)
 		})
@@ -184,7 +185,7 @@ func TestOrgService_FindOrganization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
@@ -294,7 +295,7 @@ func TestOrgService_FindOrganizations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
@@ -384,7 +385,7 @@ func TestOrgService_UpdateOrganization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
@@ -466,7 +467,7 @@ func TestOrgService_DeleteOrganization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
@@ -544,7 +545,7 @@ func TestOrgService_CreateOrganization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewOrgService(tt.fields.OrgService)
+			s := tenant.NewAuthedOrgService(tt.fields.OrgService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))

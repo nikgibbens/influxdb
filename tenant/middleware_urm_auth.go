@@ -7,16 +7,16 @@ import (
 	"github.com/influxdata/influxdb/authorizer"
 )
 
-type OrganizationService interface {
+type OrgUrmService interface {
 	FindResourceOrganizationID(ctx context.Context, rt influxdb.ResourceType, id influxdb.ID) (influxdb.ID, error)
 }
 
 type AuthedURMService struct {
 	s          influxdb.UserResourceMappingService
-	orgService OrganizationService
+	orgService OrgUrmService
 }
 
-func NewAuthedURMService(orgSvc OrganizationService, s influxdb.UserResourceMappingService) *URMService {
+func NewAuthedURMService(orgSvc OrgUrmService, s influxdb.UserResourceMappingService) *AuthedURMService {
 	return &AuthedURMService{
 		s:          s,
 		orgService: orgSvc,

@@ -1,4 +1,4 @@
-package authorizer_test
+package tenant_test
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/influxdata/influxdb"
-	"github.com/influxdata/influxdb/authorizer"
 	influxdbcontext "github.com/influxdata/influxdb/context"
 	"github.com/influxdata/influxdb/mock"
+	"github.com/influxdata/influxdb/tenant"
 	influxdbtesting "github.com/influxdata/influxdb/testing"
 )
 
@@ -23,7 +23,7 @@ func (s *OrgService) FindResourceOrganizationID(ctx context.Context, rt influxdb
 func TestURMService_FindUserResourceMappings(t *testing.T) {
 	type fields struct {
 		UserResourceMappingService influxdb.UserResourceMappingService
-		OrgService                 authorizer.OrganizationService
+		OrgService                 tenant.OrgUrmService
 	}
 	type args struct {
 		permission influxdb.Permission
@@ -128,7 +128,7 @@ func TestURMService_FindUserResourceMappings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewURMService(tt.fields.OrgService, tt.fields.UserResourceMappingService)
+			s := tenant.NewAuthedURMService(tt.fields.OrgService, tt.fields.UserResourceMappingService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
@@ -146,7 +146,7 @@ func TestURMService_FindUserResourceMappings(t *testing.T) {
 func TestURMService_WriteUserResourceMapping(t *testing.T) {
 	type fields struct {
 		UserResourceMappingService influxdb.UserResourceMappingService
-		OrgService                 authorizer.OrganizationService
+		OrgService                 tenant.OrgUrmService
 	}
 	type args struct {
 		permission influxdb.Permission
@@ -238,7 +238,7 @@ func TestURMService_WriteUserResourceMapping(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := authorizer.NewURMService(tt.fields.OrgService, tt.fields.UserResourceMappingService)
+			s := tenant.NewAuthedURMService(tt.fields.OrgService, tt.fields.UserResourceMappingService)
 
 			ctx := context.Background()
 			ctx = influxdbcontext.SetAuthorizer(ctx, mock.NewMockAuthorizer(false, []influxdb.Permission{tt.args.permission}))
