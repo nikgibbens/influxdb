@@ -60,11 +60,46 @@ func TestCmdConfig(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "short new with existing",
+				flags: []string{
+					"-n", "default",
+					"-o", "org1",
+					"-u", "http://localhost:9999",
+					"-t", "tok1",
+					"-a",
+				},
+				original: config.Configs{
+					"config1": {
+						Org:    "org1",
+						Active: true,
+						Token:  "tok1",
+						Host:   "host1",
+					},
+				},
+				expected: config.Configs{
+					"default": {
+						Org:    "org1",
+						Active: true,
+						Token:  "tok1",
+						Host:   "http://localhost:9999",
+					},
+					"config1": {
+						Org:            "org1",
+						Token:          "tok1",
+						Host:           "host1",
+						PreviousActive: true,
+					},
+				},
+			},
 		}
 		cmdFn := func(orginal, expected config.Configs) func(*globalFlags, genericCLIOpts) *cobra.Command {
 			svc := &config.MockConfigService{
 				ParseConfigsFn: func() (config.Configs, error) {
 					return orginal, nil
+				},
+				ParsePreviousActiveConfigFn: func() (config.Config, error) {
+					return config.Config{}, nil
 				},
 				WriteConfigsFn: func(pp config.Configs) error {
 					if diff := cmp.Diff(expected, pp); diff != "" {
@@ -111,12 +146,14 @@ func TestCmdConfig(t *testing.T) {
 				arg:  "default",
 				original: config.Configs{
 					"config1": {
+						Name:   "config1",
 						Org:    "org2",
 						Active: true,
 						Token:  "tok2",
 						Host:   "http://localhost:8888",
 					},
 					"default": {
+						Name:   "default",
 						Org:    "org1",
 						Active: false,
 						Token:  "tok1",
@@ -125,12 +162,53 @@ func TestCmdConfig(t *testing.T) {
 				},
 				expected: config.Configs{
 					"config1": {
+						Name:           "config1",
+						Org:            "org2",
+						Active:         false,
+						PreviousActive: true,
+						Token:          "tok2",
+						Host:           "http://localhost:8888",
+					},
+					"default": {
+						Name:   "default",
+						Org:    "org1",
+						Active: true,
+						Token:  "tok1",
+						Host:   "http://localhost:9999",
+					},
+				},
+			},
+			{
+				name: "back",
+				arg:  "-",
+				original: config.Configs{
+					"config1": {
+						Name:   "config1",
 						Org:    "org2",
-						Active: false,
+						Active: true,
 						Token:  "tok2",
 						Host:   "http://localhost:8888",
 					},
 					"default": {
+						Name:           "default",
+						Org:            "org1",
+						Active:         false,
+						PreviousActive: true,
+						Token:          "tok1",
+						Host:           "http://localhost:9999",
+					},
+				},
+				expected: config.Configs{
+					"config1": {
+						Name:           "config1",
+						Org:            "org2",
+						Active:         false,
+						PreviousActive: true,
+						Token:          "tok2",
+						Host:           "http://localhost:8888",
+					},
+					"default": {
+						Name:   "default",
 						Org:    "org1",
 						Active: true,
 						Token:  "tok1",
@@ -143,6 +221,14 @@ func TestCmdConfig(t *testing.T) {
 			svc := &config.MockConfigService{
 				ParseConfigsFn: func() (config.Configs, error) {
 					return orginal, nil
+				},
+				ParsePreviousActiveConfigFn: func() (config.Config, error) {
+					for _, p := range orginal {
+						if p.PreviousActive {
+							return p, nil
+						}
+					}
+					return config.Config{}, nil
 				},
 				WriteConfigsFn: func(pp config.Configs) error {
 					if diff := cmp.Diff(expected, pp); diff != "" {

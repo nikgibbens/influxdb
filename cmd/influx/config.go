@@ -60,17 +60,28 @@ func (b *cmdConfigBuilder) cmdSwitchActiveRunEFn(cmd *cobra.Command, args []stri
 	if err != nil {
 		return err
 	}
-	b.name = args[0]
-	p0, ok := pp[b.name]
-	if !ok {
-		return &influxdb.Error{
-			Code: influxdb.ENotFound,
-			Msg:  fmt.Sprintf("name %q is not found", b.name),
+	var p0 config.Config
+	var n string
+	if args[0] == "-" {
+		p0, err = b.svc.ParsePreviousActiveConfig()
+		if err != nil {
+			return err
+		}
+		n = p0.Name
+	} else {
+		n = args[0]
+		var ok bool
+		p0, ok = pp[n]
+		if !ok {
+			return &influxdb.Error{
+				Code: influxdb.ENotFound,
+				Msg:  fmt.Sprintf("name %q is not found", b.name),
+			}
 		}
 	}
-	pp[b.name] = p0
+	pp[n] = p0
 
-	if err := pp.Switch(b.name); err != nil {
+	if err := pp.Switch(n); err != nil {
 		return err
 	}
 
@@ -80,8 +91,8 @@ func (b *cmdConfigBuilder) cmdSwitchActiveRunEFn(cmd *cobra.Command, args []stri
 
 	return b.printConfigs(configPrintOpts{
 		config: cfg{
-			name:   b.name,
-			Config: pp[b.name],
+			name:   n,
+			Config: pp[n],
 		},
 	})
 }
@@ -110,10 +121,9 @@ func (b *cmdConfigBuilder) cmdCreateRunEFn(*cobra.Command, []string) error {
 	}
 
 	p := config.Config{
-		Host:   b.url,
-		Token:  b.token,
-		Org:    b.org,
-		Active: b.active,
+		Host:  b.url,
+		Token: b.token,
+		Org:   b.org,
 	}
 	if _, ok := pp[b.name]; ok {
 		return &influxdb.Error{
@@ -123,10 +133,8 @@ func (b *cmdConfigBuilder) cmdCreateRunEFn(*cobra.Command, []string) error {
 	}
 
 	pp[b.name] = p
-	if p.Active {
-		if err := pp.Switch(b.name); err != nil {
-			return err
-		}
+	if err := pp.Switch(b.name); err != nil {
+		return err
 	}
 
 	if err = b.svc.WriteConfigs(pp); err != nil {
@@ -136,7 +144,7 @@ func (b *cmdConfigBuilder) cmdCreateRunEFn(*cobra.Command, []string) error {
 	return b.printConfigs(configPrintOpts{
 		config: cfg{
 			name:   b.name,
-			Config: p,
+			Config: pp[b.name],
 		},
 	})
 }
